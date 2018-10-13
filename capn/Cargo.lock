@@ -7,14 +7,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "capn"
 version = "0.1.0"
 dependencies = [
- "capnp 0.9.0",
- "capnpc 0.9.0",
+ "capnp 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "capnpc 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "memmap 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
 name = "capnp"
-version = "0.9.0"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "byteorder 1.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -22,8 +23,9 @@ dependencies = [
 [[package]]
 name = "capnpc"
 version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "capnp 0.9.0",
+ "capnp 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -61,6 +63,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [metadata]
 "checksum byteorder 1.2.6 (registry+https://github.com/rust-lang/crates.io-index)" = "90492c5858dd7d2e78691cfb89f90d273a2800fc11d98f60786e5d87e2f83781"
+"checksum capnp 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)" = "d8a848d1eaa3aca24cfacfa4b5c7cc0d671b9efa411c102394ce6a04b70c2225"
+"checksum capnpc 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)" = "6f85b818d7d9d63ca794b96b00ff28e2c44cfeeec6adb44fa4b4de8e05eb4e75"
 "checksum libc 0.2.43 (registry+https://github.com/rust-lang/crates.io-index)" = "76e3a3ef172f1a0b9a9ff0dd1491ae5e6c948b94479a3021819ba7d860c8645d"
 "checksum memmap 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)" = "6585fd95e7bb50d6cc31e20d4cf9afb4e2ba16c5846fc76793f11218da9c475b"
 "checksum winapi 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)" = "92c1eb33641e276cfa214a0522acad57be5c56b10cb348b3c5117db75f3ac4b0"

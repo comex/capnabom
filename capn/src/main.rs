@@ -150,7 +150,7 @@ fn main() {
     match &mode[..] {
         "encode-old" => encode_capn_old(&in_filename, &env::args().nth(3).unwrap(), /*use_first_segment_words*/ false),
         "encode-old-fsw" => encode_capn_old(&in_filename, &env::args().nth(3).unwrap(), /*use_first_segment_words*/ true),
-        "encode-new-no-fsw" => encode_capn(&in_filename, &env::args().nth(3).unwrap(), /*use_first_segment_words*/ false),
+        "encode-no-fsw" => encode_capn(&in_filename, &env::args().nth(3).unwrap(), /*use_first_segment_words*/ false),
         "encode" => encode_capn(&in_filename, &env::args().nth(3).unwrap(), /*use_first_segment_words*/ true),
         "decode-nth" => println!("{}", decode_capn_and_get_nth_byte_sum(&in_filename, env::args().nth(3).unwrap().parse::<usize>().unwrap())),
         "decode-all" => println!("{}", decode_capn_and_get_all_byte_sum(&in_filename)),

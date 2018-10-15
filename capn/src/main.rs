@@ -10,8 +10,35 @@ use std::fs::File;
 use std::io::{BufReader, BufRead, BufWriter};
 use std::env;
 use std::time::Instant;
+use std::io::{Seek, SeekFrom};
 
-pub fn encode_capn(in_filename: &str, out_filename: &str) {
+pub fn encode_capn_old(in_filename: &str, out_filename: &str, use_first_segment_words: bool) {
+    let mut lines: Vec<String> = Vec::new();
+    let mut in_file = File::open(in_filename).unwrap();
+    let in_file_len = in_file.seek(SeekFrom::End(0)).unwrap();
+    in_file.seek(SeekFrom::Start(0)).unwrap();
+    for line in BufReader::new(in_file).lines() {
+        lines.push(line.unwrap());
+    }
+    let first_segment_words = 2 + 2 * (lines.len() as u64) + in_file_len / 8;
+    let mut builder = if use_first_segment_words {
+        capnp::message::Builder::new(
+            capnp::message::HeapAllocator::new().first_segment_words(first_segment_words as u32))
+    } else {
+        capnp::message::Builder::new_default()
+    };
+    {
+        let msg = builder.init_root::<foo_capnp::dictionary::Builder>();
+        let mut words = msg.init_words(lines.len() as u32);
+        for (i, line) in lines.iter().enumerate() {
+            words.set(i as u32, line);
+        }
+    }
+    let out_file = File::create(out_filename).unwrap();
+    capnp::serialize::write_message(&mut BufWriter::new(out_file), &builder).unwrap();
+}
+
+pub fn encode_capn(in_filename: &str, out_filename: &str, use_first_segment_words: bool) {
     let in_file = File::open(in_filename).unwrap();
     let mmap = unsafe { memmap::Mmap::map(&in_file).unwrap() };
 
@@ -25,8 +52,12 @@ pub fn encode_capn(in_filename: &str, out_filename: &str) {
     // conservative overestimate for how much we need to allocate
     let first_segment_words = 2 + 2 * num_lines + mmap.len() / 8;
 
-    let mut builder = capnp::message::Builder::new(
-        capnp::message::HeapAllocator::new().first_segment_words(first_segment_words as u32));
+    let mut builder = if use_first_segment_words {
+        capnp::message::Builder::new(
+            capnp::message::HeapAllocator::new().first_segment_words(first_segment_words as u32))
+    } else {
+        capnp::message::Builder::new_default()
+    };
     {
         let msg = builder.init_root::<foo_capnp::dictionary::Builder>();
         let mut words = msg.init_words(num_lines as u32);
@@ -89,7 +120,7 @@ pub fn decode_capn_and_get_all_byte_sum(in_filename: &str) -> u32 {
 
 pub fn test_encode_pure(in_filename: &str) {
     let mut lines: Vec<String> = Vec::new();
-    let in_file = File::open("/tmp/manywords").unwrap();
+    let in_file = File::open(in_filename).unwrap();
     for line in BufReader::new(in_file).lines() {
         lines.push(line.unwrap());
     }
@@ -117,7 +148,10 @@ fn main() {
     let mode = env::args().nth(1).unwrap();
     let in_filename = env::args().nth(2).unwrap();
     match &mode[..] {
-        "encode" => encode_capn(&in_filename, &env::args().nth(3).unwrap()),
+        "encode-old" => encode_capn_old(&in_filename, &env::args().nth(3).unwrap(), /*use_first_segment_words*/ false),
+        "encode-old-fsw" => encode_capn_old(&in_filename, &env::args().nth(3).unwrap(), /*use_first_segment_words*/ true),
+        "encode-new-no-fsw" => encode_capn(&in_filename, &env::args().nth(3).unwrap(), /*use_first_segment_words*/ false),
+        "encode" => encode_capn(&in_filename, &env::args().nth(3).unwrap(), /*use_first_segment_words*/ true),
         "decode-nth" => println!("{}", decode_capn_and_get_nth_byte_sum(&in_filename, env::args().nth(3).unwrap().parse::<usize>().unwrap())),
         "decode-all" => println!("{}", decode_capn_and_get_all_byte_sum(&in_filename)),
         "encode-pure" => test_encode_pure(&in_filename),

@@ -12,19 +12,36 @@ use std::env;
 use std::time::Instant;
 
 pub fn encode_capn(in_filename: &str, out_filename: &str) {
-    // Can't encode direclty into capnproto because we don't know the size in advance, so use an
-    // intermediate Vec<String>
-    let mut lines: Vec<String> = Vec::new();
     let in_file = File::open(in_filename).unwrap();
-    for line in BufReader::new(in_file).lines() {
-        lines.push(line.unwrap());
+    let mmap = unsafe { memmap::Mmap::map(&in_file).unwrap() };
+
+    let mut num_lines = 0;
+    for c in &mmap[..] {
+        if *c == 10 { // new line
+            num_lines += 1;
+        }
     }
-    let mut builder = capnp::message::Builder::new_default();
+
+    // conservative overestimate for how much we need to allocate
+    let first_segment_words = 2 + 2 * num_lines + mmap.len() / 8;
+
+    let mut builder = capnp::message::Builder::new(
+        capnp::message::HeapAllocator::new().first_segment_words(first_segment_words as u32));
     {
         let msg = builder.init_root::<foo_capnp::dictionary::Builder>();
-        let mut words = msg.init_words(lines.len() as u32);
-        for (i, line) in lines.iter().enumerate() {
-            words.set(i as u32, line);
+        let mut words = msg.init_words(num_lines as u32);
+        let mut start_of_line_idx = 0;
+        let mut end_of_line_idx = 0;
+        let mut idx = 0;
+        while start_of_line_idx < mmap.len() {
+            while mmap[end_of_line_idx] != 10 { // new line
+                end_of_line_idx += 1;
+            }
+            words.set(idx as u32,
+                      unsafe { std::str::from_utf8_unchecked(&mmap[start_of_line_idx..end_of_line_idx])});
+            idx += 1;
+            start_of_line_idx = end_of_line_idx + 1;
+            end_of_line_idx = start_of_line_idx;
         }
     }
     let out_file = File::create(out_filename).unwrap();

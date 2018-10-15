@@ -6,17 +6,11 @@ build = "build.rs"
 
 
 [dependencies]
-#capnp = "0.9"
+capnp = "0.9.1"
 memmap = "0.7.0"
 
 [build-dependencies]
-#capnpc = "0.9"
-
-[dependencies.capnp]
-path = "/usr/src/capnproto-rust/capnp"
-[build-dependencies.capnpc]
-path = "/usr/src/capnproto-rust/capnpc"
-
+capnpc = "0.9"
 
 [profile.release]
 debug = true
